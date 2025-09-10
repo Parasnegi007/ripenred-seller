@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self' https: http: data: 'unsafe-inline' 'unsafe-eval'; connect-src 'self' http://localhost:* https://localhost:* http://127.0.0.1:* https://127.0.0.1:* ws://localhost:* ws://127.0.0.1:*; img-src 'self' data: http: https: blob:;">
+    <meta http-equiv="X-XSS-Protection" content="1; mode=block">
+    <meta http-equiv="X-Content-Type-Options" content="nosniff">
+    <title>Seller Login / Signup</title>
+    
+    <!-- Styles -->
+    <link rel="stylesheet" href="assets/seller.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
+</head>
+<body>
+
+<div class="auth-container">
+    <div class="tabs">
+        <div class="tab active" onclick="showTab('login')">
+            <i class="fas fa-sign-in-alt"></i> Login
+        </div>
+        <div class="tab" onclick="showTab('signup')">
+            <i class="fas fa-user-plus"></i> Signup
+        </div>
+    </div>
+
+    <!-- Login Form -->
+    <div id="loginForm" class="form-container active">
+        <h2>Welcome Back!</h2>
+    
+
+        <div class="divider">
+          
+        </div>
+
+        <div class="input-group">
+            <i class="fas fa-envelope"></i>
+            <input type="text" id="loginEmailOrPhone" placeholder="Email or Phone" />
+        </div>
+        <div class="input-group">
+            <i class="fas fa-lock"></i>
+            <input type="password" id="loginPassword" placeholder="Password" />
+        </div>
+        
+        <div class="forgot-password-link">
+            <a href="#" onclick="toggleForgotPassword(event)">Forgot Password?</a>
+        </div>
+
+        <div id="loginOtpSection" class="hidden">
+            <div class="input-group">
+                <i class="fas fa-key"></i>
+                <input type="text" id="loginOtp" placeholder="Enter OTP" />
+            </div>
+            <button onclick="sendLoginOTP()">Send OTP</button>
+            <button onclick="verifyLoginOTP()">Verify OTP & Login</button>
+        </div>
+
+        <button onclick="handleSellerLogin()">
+            <i class="fas fa-arrow-right"></i>
+            Login to Dashboard
+        </button>
+    </div>
+
+    <!-- Signup Form -->
+    <div id="signupForm" class="form-container">
+        <h2>Create Your Seller Account</h2>
+
+        <div class="input-group">
+            <i class="fas fa-user"></i>
+            <input type="text" id="signupName" placeholder="Full Name" />
+        </div>
+        <div class="input-group">
+            <i class="fas fa-envelope"></i>
+            <input type="email" id="signupEmail" placeholder="Email" />
+        </div>
+        <div class="input-group">
+            <i class="fas fa-phone"></i>
+            <input type="text" id="signupPhone" placeholder="Phone Number" />
+        </div>
+        <div class="input-group">
+            <i class="fas fa-store"></i>
+            <input type="text" id="signupVendorName" placeholder="Shop / Vendor Name" />
+        </div>
+        <div class="input-group">
+            <i class="fas fa-lock"></i>
+            <input type="password" id="signupPassword" placeholder="Password" />
+        </div>
+
+        <div class="otp-section">
+            <button onclick="sendSellerOTP()">
+                <i class="fas fa-paper-plane"></i>
+                Send OTP
+            </button>
+            <div id="otpVerifySection" class="hidden">
+                <div class="input-group">
+                    <i class="fas fa-key"></i>
+                    <input type="text" id="signupOtp" placeholder="Enter OTP" />
+                </div>
+                <button onclick="verifySellerOTP()">
+                    <i class="fas fa-check"></i>
+                    Verify OTP
+                </button>
+            </div>
+        </div>
+
+        <button onclick="submitSellerSignup()">
+            <i class="fas fa-user-plus"></i>
+            Create Account
+        </button>
+    </div>
+  <div id="forgotPasswordTab" class="tab-content hidden">
+    <div class="forgot-password-header">
+        <h2>Reset Password</h2>
+        <button class="close-btn" onclick="toggleForgotPassword(event)">
+            <i class="fas fa-times"></i>
+        </button>
+    </div>
+    
+    <div class="input-group">
+        <i class="fas fa-envelope"></i>
+        <input type="email" id="forgotEmail" placeholder="Enter your registered email">
+    </div>
+    <button class="btn-small" onclick="sendForgotOtp()">
+        <i class="fas fa-paper-plane"></i> Send OTP
+    </button>
+
+    <div id="forgotOtpSection" class="hidden">
+        <div class="input-group">
+            <i class="fas fa-key"></i>
+            <input type="text" id="forgotOtp" placeholder="Enter OTP">
+        </div>
+        <button class="btn-small" onclick="verifyForgotOtp()">
+            <i class="fas fa-check"></i> Verify OTP
+        </button>
+    </div>
+
+    <div id="resetPasswordSection" class="hidden">
+        <div class="input-group">
+            <i class="fas fa-lock"></i>
+            <input type="password" id="forgotNewPassword" placeholder="Enter New Password">
+        </div>
+        <button class="btn-small" onclick="resetForgotPassword()">
+            <i class="fas fa-sync"></i> Reset Password
+        </button>
+    </div>
+  </div>
+
+</div>
+
+
+<script>
+  function showTab(tab) {
+    const loginTab = document.querySelector(".tab:nth-child(1)");
+    const signupTab = document.querySelector(".tab:nth-child(2)");
+    const loginForm = document.getElementById("loginForm");
+    const signupForm = document.getElementById("signupForm");
+    const forgotPasswordTab = document.getElementById("forgotPasswordTab");
+
+    // Hide forgot password when switching tabs
+    forgotPasswordTab.classList.add("hidden");
+
+    if (tab === "login") {
+        // Update tabs
+        loginTab.classList.add("active");
+        signupTab.classList.remove("active");
+
+        // Animate forms
+        signupForm.classList.add("sliding-out");
+        setTimeout(() => {
+            signupForm.classList.remove("active", "sliding-out");
+            loginForm.classList.add("active");
+        }, 300);
+    } else {
+        // Update tabs
+        signupTab.classList.add("active");
+        loginTab.classList.remove("active");
+
+        // Animate forms
+        loginForm.classList.add("sliding-out");
+        setTimeout(() => {
+            loginForm.classList.remove("active", "sliding-out");
+            signupForm.classList.add("active");
+        }, 300);
+    }
+  }
+
+  function toggleForgotPassword(event) {
+    event.preventDefault();
+    const forgotPasswordTab = document.getElementById("forgotPasswordTab");
+    forgotPasswordTab.classList.toggle("hidden");
+  }
+</script>
+
+<!-- Third-party Libraries -->
+<script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+<script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
+
+<!-- Application Scripts -->
+<script src="config.new.js"></script>
+<script>
+  // Initialize toastr configuration
+  toastr.options = {
+    closeButton: true,
+    progressBar: true,
+    preventDuplicates: true,
+    positionClass: 'toast-top-right',
+    timeOut: 5000
+  };
+
+  // Global error handling
+  window.addEventListener('error', (event) => {
+    console.error('Global error:', event.error);
+    showMessage('An unexpected error occurred. Please try again.', 'error');
+  });
+
+  // Session management
+  const SESSION_TIMEOUT = 30 * 60 * 1000; // 30 minutes
+  let lastActivity = Date.now();
+
+  function checkSession() {
+    if (Date.now() - lastActivity > SESSION_TIMEOUT) {
+      localStorage.removeItem('sellerAuthToken');
+      localStorage.removeItem('sellerInfo');
+      showMessage('Session expired. Please login again.', 'warning');
+      location.reload();
+    }
+  }
+
+  // Update last activity on user interaction
+  document.addEventListener('click', () => lastActivity = Date.now());
+  document.addEventListener('keypress', () => lastActivity = Date.now());
+
+  // Check session every minute
+  setInterval(checkSession, 60000);
+</script>
+<script src="config.new.js"></script>
+<script src="assets/seller.js"></script>
+</body>
+</html>

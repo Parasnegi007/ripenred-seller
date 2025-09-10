@@ -1,0 +1,556 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self' https: http: data: 'unsafe-inline' 'unsafe-eval'; connect-src 'self' http://localhost:* https://localhost:* http://127.0.0.1:* https://127.0.0.1:* ws://localhost:* ws://127.0.0.1:*; img-src 'self' data: http: https: blob:;">
+    <meta http-equiv="X-XSS-Protection" content="1; mode=block">
+    <meta http-equiv="X-Content-Type-Options" content="nosniff">
+    <title>Seller Dashboard</title>
+    
+    <!-- ✅ Google Analytics 4 -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-YEJN0VHC28"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('config', 'G-YEJN0VHC28', {
+        page_title: 'Seller Dashboard',
+        page_location: window.location.href,
+        send_page_view: true
+      });
+    </script>
+    
+    <!-- Styles -->
+    <link rel="stylesheet" href="assets/dashboard_new.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css">
+    
+    <!-- Order Notification System -->
+    <script src="assets/utils/notifications.js"></script>
+    
+    <!-- Third-party Libraries -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
+
+
+<!-- 👌 Fixed Quill scripts (v2.0.2) — no deprecation warning -->
+<link href="https://cdn.jsdelivr.net/npm/quill@2.0.2/dist/quill.snow.css" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/quill@2.0.2/dist/quill.js"></script>
+
+<script src="https://media-library.cloudinary.com/global/all.js"></script>
+
+
+
+
+</head>
+<body>
+
+    <!-- Navbar -->
+    <nav class="navbar">
+        <div class="logo">Seller Dashboard</div>
+        <ul class="nav-links">
+            <li class="dropdown">
+                <a href="#">Products</a>
+                <ul class="dropdown-content" id="categoryList">
+                    <!-- Categories will be dynamically loaded here -->
+                    <li onclick="openPopup('editCategoriesPopup')">📝 Edit/Add Category</li>
+                </ul>
+            </li>
+            <li><a href="#" onclick="openPopup('ordersPopup'); loadOrders();">Orders</a></li>
+            <li><a href="#" onclick="openPopup('sendMailPopup')">Send Mail</a></li>
+            <li><a href="#" onclick="openPopup('salesReportPopup')">Sales Report</a></li>
+            <li class="dropdown">
+                <a href="#">Users</a>
+                <ul class="dropdown-content">
+                    <li onclick="fetchUsers()">View Users</li>
+                    <li onclick="openPopup('manageUsersPopup')">Manage Users</li>
+                </ul>
+            </li>
+        </ul>
+<a href="seller.html" class="user-badge" style="text-decoration: none;">👤 Account</a> 
+<button id="logoutBtn" class="logout-button">Logout</button>
+    </nav>
+
+    <!-- Dashboard Stats -->
+    <div class="dashboard">
+        <div class="stat-box" onclick="showChart('Orders')">
+            <h3>Total Orders</h3>
+            <p id="totalOrders"></p>
+        </div>
+        <div class="stat-box" onclick="showChart('Users')">
+            <h3>Total Users</h3>
+            <p id="totalUsers"></p>
+        </div>
+        <div class="stat-box" onclick="showChart('Sales')">
+            <h3>Total Sales</h3>
+            <p id="totalSales"></p>
+        </div>
+        <div class="stat-box" onclick="showChart('Products')">
+            <h3>Total Products</h3>
+            <p id="totalProducts"></p>
+        </div>
+    </div>
+
+
+    <!-- Popup for Category Products -->
+<div class="popup" id="categoryPopup">
+    <div class="popup-content">
+        <span class="close" onclick="closePopup('categoryPopup')">×</span>
+
+        <h3>Category Products</h3>
+        
+        <!-- Add Product Button -->
+        <button id="addProductBtn" onclick="openAddProductForm()">Add Product</button>
+
+        <div class="product-list" id="productList">
+            <!-- Product items will be loaded here -->
+        </div>
+    </div>
+</div>
+
+
+    <!-- Edit Categories Popup -->
+    <div id="editCategoriesPopup" class="popup">
+        <div class="popup-content">
+            <span class="close" onclick="closePopup('editCategoriesPopup')">&times;</span>
+            <h2>Edit Categories</h2>
+            <div id="editCategoryList">Loading...</div>
+            <button onclick="openPopup('addCategoryPopup')">➕ Add Category</button>
+        </div>
+    </div>
+
+    <!-- Add Category Popup -->
+<div id="addCategoryPopup" class="popup">
+    <div class="popup-content">
+      <span class="close" onclick="closePopup('addCategoryPopup')">&times;</span>
+      <h2>Add New Category</h2>
+      
+      <label>Name:</label>
+      <input type="text" id="newCategoryName">
+  
+      <label>Description:</label>
+      <textarea id="newCategoryDescription"></textarea>
+  
+      <label>Upload Image:</label>
+      <input type="file" id="newCategoryImage">
+  
+      <label>Slug:</label>
+      <input type="text" id="newCategorySlug">
+  
+      <label>
+        <input type="checkbox" id="newCategoryFeatured">
+        Featured
+      </label>
+  
+      <button onclick="addNewCategory()">➕ Add Category</button>
+    </div>
+  </div>
+
+  <!-- Add Product Popup -->
+<div id="addProductPopup" class="popup">
+    <div class="popup-content">
+        <span class="close" onclick="closePopup('addProductPopup')">&times;</span>
+        <h2>Add New Product</h2>
+
+        <label>Name:</label>
+        <input type="text" id="newProductName">
+
+        <label>Price (Sale Price):</label>
+        <input type="number" id="newProductPrice">
+
+        <label>MRP:</label>
+        <input type="number" id="newProductMrp">
+
+        <label>
+            <input type="checkbox" id="newProductSale">
+            On Sale
+        </label>
+
+        <label>Description:</label>
+       <div id="newProductDescription"></div>
+
+         <label>Upload Image:</label>
+      <input type="file"  id="newProductImage">
+
+
+        <label>Category:</label>
+        <select id="newProductCategory">
+            <!-- Categories will be dynamically loaded here -->
+        </select>
+
+       <label>
+    <input type="checkbox" id="newProductOutOfStock">
+    Mark as Out of Stock
+</label>
+
+
+        <label>
+            <input type="checkbox" id="newProductFeatured">
+            Featured
+        </label>
+
+        <button onclick="addNewProduct()">➕ Add Product</button>
+    </div>
+</div>
+
+<!-- Edit Product Popup -->
+<div class="popup" id="editProductPopup" style="display: none;">
+    <div class="popup-content">
+        <span class="close" onclick="closePopup('editProductPopup')">&times;</span>
+        <h2>Edit Product</h2>
+
+        <!-- Hidden field to store Product ID -->
+        <input type="hidden" id="editProductId">
+
+        <label>Name:</label>
+        <input type="text" id="editProductName">
+
+        <label>Price (Sale Price):</label>
+        <input type="number" id="editProductPrice">
+
+        <label>MRP:</label>
+        <input type="number" id="editProductMrp">
+
+        <label>
+            <input type="checkbox" id="editProductSale">
+            On Sale
+        </label>
+
+        <label>Description:</label>
+       <div id="editProductDescription"></div>
+
+
+        <label>Upload New Image:</label>
+        <input type="file" id="editProductImage">
+
+        <label>Category:</label>
+        <select id="editProductCategory">
+            <!-- Categories will be dynamically loaded -->
+        </select>
+
+       <label>
+    <input type="checkbox" id="editProductOutOfStock">
+    Mark as Out of Stock
+</label>
+
+        <label>
+            <input type="checkbox" id="editProductFeatured">
+            Featured
+        </label>
+
+        <button onclick="updateProduct()">Save Changes</button>
+    </div>
+</div>
+
+<!-- Orders Popup -->
+<div id="ordersPopup" class="popup">
+    <div class="popup-content wide-popup">
+      <span class="close" onclick="closePopup('ordersPopup')">&times;</span>
+      <h2>📦 Orders</h2>
+        <div class="order-search-bar">
+        <input type="text" id="orderSearchInput" placeholder="Enter Order ID">
+        <button onclick="searchOrderByFriendlyId()">🔍 Search</button>
+      </div>
+
+      <!-- ✅ Invoice Management Section -->
+      <div class="invoice-controls">
+        <div class="bulk-selection">
+          <label>
+            <input type="checkbox" id="selectAllOrders" onchange="toggleSelectAllOrders()">
+            Select All Orders
+          </label>
+          <button id="generateInvoicesBtn" onclick="generateBulkInvoices()" disabled>
+            📄 Generate Selected Invoices
+          </button>
+        </div>
+        <div class="invoice-info">
+          <span id="selectedCount">0 orders selected</span>
+        </div>
+      </div>
+
+      <div id="ordersList" class="orders-list">
+        <!-- Orders will be dynamically loaded here -->
+        <p>Loading orders...</p>
+      </div>
+    </div>
+    <!-- Order Details Popup -->
+<div id="orderDetailsPopup" class="popup-overlay" style="display: none;">
+    <div class="popup-content">
+    
+      <span class="close-btn" onclick="closePopup('orderDetailsPopup')">×</span>
+
+      <h2>Order Details</h2>
+  
+      <div id="orderDetailsContainer" class="order-details-section">
+        <!-- Order details will be injected here by JS -->
+      </div>
+  
+    </div>
+  </div>
+  
+  </div>
+  
+
+<div id="productListContainer"></div>
+<!-- ✅ Global Chart Controls (Time Period Buttons) - Available for All Charts -->
+<div id="chartControls" style="display: none;">
+    <button onclick="changeTimePeriod('daily')">Daily</button>
+    <button onclick="changeTimePeriod('weekly')">Weekly</button>
+    <button onclick="changeTimePeriod('monthly')">Monthly</button>
+    <button onclick="changeTimePeriod('yearly')">Yearly</button>
+    <button onclick="changeTimePeriod('all')">All Time</button>
+</div>
+
+<!-- Total Orders Chart -->
+<div id="totalOrdersChartContainer" style="display: none;">
+    <!-- ✅ Renamed to `orderControls` (specific to Total Orders) -->
+    <div id="orderControls">
+    </div>
+    <canvas id="totalOrdersChart" width="400" height="200"></canvas>
+</div>
+
+<!-- Total Users Chart Sections -->
+<div id="userGrowthSection" style="display: none;">
+    <canvas id="userGrowthChart"></canvas>
+</div>
+
+<div id="userDistributionSection" style="display: none;">
+    <canvas id="userDistributionChart"></canvas>
+</div>
+
+
+<!-- ✅ Add a Toggle Button -->
+<!-- ✅ Toggle Chart Button (Hidden Initially) -->
+<button id="toggleChartBtn" style="display: none;" onclick="toggleChart()">Switch Chart</button>
+
+<!-- Total Products Chart (Hidden Initially) -->
+<div id="totalProductsChartContainer" style="display: none;">
+    <canvas id="totalProductsChart"></canvas>
+</div>
+<!-- Total Sales Chart (Hidden Initially) -->
+<div id="totalSalesChartContainer" class="chart-container" style="display: none;">
+    <div id="salesControls"></div>
+    <canvas id="totalSalesChart" width="400" height="200"></canvas>
+</div>
+<div id="viewUsersPopup" class="popup">
+    <div class="popup-content">
+        <span class="close" onclick="closePopup('viewUsersPopup')">&times;</span>
+        <h2>View Users</h2>
+        <div id="userList"></div> <!-- Users will be loaded here -->
+    </div>
+</div>
+<div id="manageUsersPopup" class="popup">
+    <div class="popup-content">
+        <span class="close" onclick="closePopup('manageUsersPopup')">&times;</span>
+        <h2>Manage Users</h2>
+        <input type="text" id="searchUser" placeholder="Search by Name, Email, Phone" oninput="searchUsers()">
+        <div id="manageUserList"></div> <!-- User list will be loaded here -->
+    </div>
+</div>
+
+<!-- Send Mail Popup -->
+<div id="sendMailPopup" class="popup">
+    <div class="popup-content wide-popup">
+        <span class="close" onclick="closePopup('sendMailPopup')">&times;</span>
+        <h2>📧 Send Mail</h2>
+        
+        <!-- Step 1: Template Selection -->
+        <div id="step1" class="mail-step">
+            <h3>Step 1: Select Email Template</h3>
+            <div class="template-upload-section">
+                <label for="templateFile">Upload JSON Template:</label>
+                <input type="file" id="templateFile" accept=".json" onchange="validateTemplate()">
+                <div class="template-info">
+                    <p>📄 Upload a JSON file with your email template containing:</p>
+                    <ul>
+                        <li><strong>subject</strong>: Email subject line</li>
+                        <li><strong>content</strong>: HTML email content</li>
+                        <li><strong>templateType</strong>: (optional) promotional|announcement|newsletter</li>
+                    </ul>
+                    <p>💡 Use <code>{{variableName}}</code> for dynamic content replacement</p>
+                </div>
+                <div id="templatePreview" class="template-preview" style="display: none;">
+                    <h4>Template Preview:</h4>
+                    <div id="templateDetails"></div>
+                </div>
+                <button id="proceedStep1" onclick="proceedToStep2()" disabled>Proceed to Recipients</button>
+            </div>
+        </div>
+        
+        <!-- Step 2: Recipient Selection -->
+        <div id="step2" class="mail-step" style="display: none;">
+            <h3>Step 2: Select Recipients</h3>
+            
+            <!-- Registered Users -->
+            <div class="recipients-section">
+                <h4>📋 Registered Users</h4>
+                <div class="users-selection">
+                    <div class="select-all-users">
+                        <label>
+                            <input type="checkbox" id="selectAllUsers" onchange="toggleAllUsers()"> 
+                            Select All Users
+                        </label>
+                        <span id="usersCount">0 users</span>
+                    </div>
+                    <div id="usersList" class="users-list">
+                        Loading users...
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Manual Email Input -->
+            <div class="manual-emails-section">
+                <h4>✉️ Manual Email Addresses</h4>
+                <textarea id="manualEmails" 
+                         placeholder="Enter email addresses separated by commas or new lines"
+                         rows="4"></textarea>
+                <div class="email-input-help">
+                    <small>💡 Example: user1@example.com, user2@example.com</small>
+                </div>
+            </div>
+            
+            <!-- Variables Input -->
+            <div id="variablesSection" class="variables-section" style="display: none;">
+                <h4>🔧 Template Variables</h4>
+                <p>Define values for template variables:</p>
+                <div id="variableInputs"></div>
+            </div>
+            
+            <!-- Action Buttons -->
+            <div class="action-buttons">
+                <button onclick="backToStep1()">← Back</button>
+                <button id="sendEmailsBtn" onclick="sendCustomEmails()" disabled>📧 Send Emails</button>
+            </div>
+        </div>
+        
+        <!-- Step 3: Results -->
+        <div id="step3" class="mail-step" style="display: none;">
+            <h3>Step 3: Sending Results</h3>
+            <div id="sendingProgress">
+                <div class="progress-indicator">
+                    <span>📧 Sending emails...</span>
+                    <div class="spinner"></div>
+                </div>
+            </div>
+            <div id="sendingResults" class="sending-results" style="display: none;"></div>
+            <div class="final-actions" style="display: none;">
+                <button onclick="resetMailService()">Send Another Email</button>
+                <button onclick="closePopup('sendMailPopup')">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Sales Report Popup -->
+<div id="salesReportPopup" class="popup">
+    <div class="popup-content wide-popup">
+        <span class="close" onclick="closePopup('salesReportPopup')">&times;</span>
+        <h2>📊 Sales Report</h2>
+        
+        <!-- Date Range Filter -->
+        <div class="sales-filter-section">
+            <div class="filter-group">
+                <label for="startDate">Start Date:</label>
+                <input type="date" id="startDate">
+            </div>
+            <div class="filter-group">
+                <label for="endDate">End Date:</label>
+                <input type="date" id="endDate">
+            </div>
+            <button id="generateReportBtn" type="button">📈 Generate Report</button>
+
+        </div>
+        
+        <!-- Sales Summary -->
+        <div id="salesSummary" class="sales-summary">
+            <div class="summary-card">
+                <h4>Total Revenue</h4>
+                <p id="totalRevenue">₹0</p>
+            </div>
+            <div class="summary-card">
+                <h4>Total Orders</h4>
+                <p id="reportTotalOrders">0</p>
+            </div>
+            <div class="summary-card">
+                <h4>Average Order Value</h4>
+                <p id="averageOrderValue">₹0</p>
+            </div>
+            <div class="summary-card">
+                <h4>Total Products Sold</h4>
+                <p id="totalProductsSold">0</p>
+            </div>
+        </div>
+        
+        <!-- Detailed Sales Chart -->
+        <div class="sales-chart-container">
+            <canvas id="salesChart"></canvas>
+        </div>
+        
+        <!-- Top Products Table -->
+        <div class="top-products-section">
+            <h3>🏆 Top Selling Products</h3>
+            <div id="topProductsList"></div>
+        </div>
+    </div>
+</div>
+
+    <!-- Utility Styles -->
+    <link rel="stylesheet" href="assets/utils.css">
+    
+    <!-- Configuration and Utilities -->
+    <script src="config.new.js"></script>
+    <script>
+        // Notification utility
+        window.showNotification = (message, type = 'info') => {
+            if (window.toastr) {
+                toastr[type](message);
+            } else {
+                alert(message);
+            }
+        };
+
+        // Auth manager
+        window.authManager = {
+            init() {
+                const token = localStorage.getItem('sellerAuthToken');
+                if (token) {
+                    this.setAuthToken(token);
+                }
+            },
+            setAuthToken(token) {
+                localStorage.setItem('sellerAuthToken', token);
+            },
+            getAuthToken() {
+                return localStorage.getItem('sellerAuthToken');
+            },
+            clearAuth() {
+                localStorage.removeItem('sellerAuthToken');
+                localStorage.removeItem('sellerInfo');
+            },
+            isAuthenticated() {
+                return !!this.getAuthToken();
+            }
+        };
+
+        // Initialize toastr
+        toastr.options = {
+            closeButton: true,
+            progressBar: true,
+            preventDuplicates: true,
+            positionClass: 'toast-top-right',
+            timeOut: 5000
+        };
+
+        // Initialize auth
+        window.addEventListener('load', () => {
+            if (window.authManager) {
+                authManager.init();
+            }
+        });
+    </script>
+    <script src="assets/dashboard.js"></script>
+</body>
+</html>

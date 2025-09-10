@@ -1,0 +1,421 @@
+/* seller.css */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
+:root {
+    --primary: #2563eb;
+    --primary-dark: #1d4ed8;
+    --secondary: #10b981;
+    --accent: #8b5cf6;
+    --danger: #ef4444;
+    --warning: #f59e0b;
+    --gray-50: #f9fafb;
+    --gray-100: #f3f4f6;
+    --gray-200: #e5e7eb;
+    --gray-700: #374151;
+    --gray-800: #1f2937;
+    --white: #ffffff;
+    --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
+    --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+    --transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    background: linear-gradient(135deg, var(--primary) 0%, var(--accent) 100%);
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 2rem;
+    line-height: 1.6;
+    color: var(--gray-700);
+}
+
+.auth-container {
+    width: min(95%, 460px);
+    background: var(--white);
+    border-radius: 16px;
+    box-shadow: var(--shadow-lg),
+                0 0 0 1px rgba(255, 255, 255, 0.1),
+                0 30px 60px -12px rgba(50, 50, 93, 0.25);
+    overflow: hidden;
+    position: relative;
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+}
+
+.auth-container::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: linear-gradient(to right, var(--primary), var(--secondary));
+}
+
+.tabs {
+    display: flex;
+    position: relative;
+    padding: 1rem 1.5rem;
+    gap: 1rem;
+    background: var(--gray-50);
+    border-bottom: 1px solid var(--gray-200);
+}
+
+.tab {
+    flex: 1;
+    text-align: center;
+    padding: 0.75rem 1.5rem;
+    font-weight: 500;
+    color: var(--gray-700);
+    border-radius: 8px;
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+    cursor: pointer;
+    background: transparent;
+    border: 1px solid transparent;
+    overflow: hidden;
+}
+
+.tab::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(
+        120deg,
+        transparent,
+        rgba(37, 99, 235, 0.1),
+        transparent
+    );
+    transition: all 0.6s ease;
+}
+
+.tab:hover {
+    color: var(--primary);
+    background: var(--gray-100);
+}
+
+.tab:hover::before {
+    left: 100%;
+}
+
+.tab.active {
+    color: var(--primary);
+    background: var(--white);
+    border-color: var(--gray-200);
+    font-weight: 600;
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
+}
+
+.form-container {
+    padding: 2rem;
+    display: none;
+    opacity: 0;
+    position: relative;
+    transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.form-container.active {
+    display: block;
+    animation: formSlide 0.5s forwards;
+}
+
+.form-container.sliding-out {
+    animation: formSlideOut 0.5s forwards;
+}
+
+.form-container h2 {
+    font-size: 1.5rem;
+    color: var(--gray-800);
+    margin-bottom: 1.5rem;
+    text-align: center;
+    transition: all 0.3s ease;
+}
+
+.input-group {
+    position: relative;
+    margin-bottom: 1.25rem;
+}
+
+.input-group i {
+    position: absolute;
+    left: 1rem;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--gray-400);
+    transition: var(--transition);
+}
+
+input {
+    width: 100%;
+    padding: 0.875rem 1rem 0.875rem 2.75rem;
+    border: 1px solid var(--gray-200);
+    border-radius: 8px;
+    font-size: 0.925rem;
+    font-family: inherit;
+    color: var(--gray-700);
+    background: var(--white);
+    transition: var(--transition);
+    box-shadow: var(--shadow-sm);
+}
+
+input:focus {
+    border-color: var(--primary);
+    outline: none;
+    box-shadow: var(--shadow-sm), 
+                0 0 0 4px rgba(37, 99, 235, 0.1);
+}
+
+input:focus + i {
+    color: var(--primary);
+}
+
+button {
+    width: 100%;
+    padding: 0.875rem;
+    background: var(--primary);
+    color: var(--white);
+    border: none;
+    border-radius: 8px;
+    margin: 0.5rem 0;
+    font-size: 0.925rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: var(--transition);
+    position: relative;
+    overflow: hidden;
+}
+
+button::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(
+        to right,
+        transparent,
+        rgba(255, 255, 255, 0.1),
+        transparent
+    );
+    transform: translateX(-100%);
+    transition: transform 0.6s ease;
+}
+
+button:hover {
+    background: var(--primary-dark);
+    box-shadow: var(--shadow-md);
+}
+
+button:hover::before {
+    transform: translateX(100%);
+}
+
+button:active {
+    transform: translateY(1px);
+}
+
+.otp-section {
+    margin: 1.5rem 0;
+    padding: 1.25rem;
+    border-radius: 12px;
+    background: var(--gray-50);
+    border: 1px dashed var(--primary);
+    position: relative;
+}
+
+.otp-section::before {
+    content: '🔒 Verification';
+    position: absolute;
+    top: -0.75rem;
+    left: 1rem;
+    padding: 0.25rem 0.75rem;
+    background: var(--white);
+    color: var(--primary);
+    font-size: 0.875rem;
+    font-weight: 500;
+    border-radius: 4px;
+    border: 1px dashed var(--primary);
+}
+
+/* Forgot Password Styles */
+.forgot-password-link {
+    text-align: right;
+    margin: -0.5rem 0 1rem;
+}
+
+.forgot-password-link a {
+    color: var(--primary);
+    font-size: 0.875rem;
+    text-decoration: none;
+    transition: var(--transition);
+}
+
+.forgot-password-link a:hover {
+    color: var(--primary-dark);
+    text-decoration: underline;
+}
+
+.forgot-password-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+}
+
+.close-btn {
+    background: none;
+    border: none;
+    color: var(--gray-500);
+    padding: 0.5rem;
+    cursor: pointer;
+    transition: var(--transition);
+    width: auto;
+    margin: 0;
+}
+
+.close-btn:hover {
+    color: var(--danger);
+    transform: none;
+    background: none;
+    box-shadow: none;
+}
+
+.btn-small {
+    padding: 0.625rem 1rem;
+    font-size: 0.875rem;
+    width: auto;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin: 1rem 0;
+}
+
+#forgotPasswordTab {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: var(--white);
+    padding: 2rem;
+    border-radius: 12px;
+    box-shadow: var(--shadow-lg);
+    width: 90%;
+    max-width: 400px;
+    z-index: 1000;
+}
+
+.hidden {
+    display: none !important;
+}
+
+/* Divider */
+.divider {
+    display: flex;
+    align-items: center;
+    text-align: center;
+    margin: 1.5rem 0;
+    color: var(--gray-400);
+    font-size: 0.875rem;
+}
+
+.divider::before,
+.divider::after {
+    content: '';
+    flex: 1;
+    border-top: 1px solid var(--gray-200);
+}
+
+.divider span {
+    padding: 0 1rem;
+}
+
+/* Social Login */
+.social-login {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+}
+
+.social-btn {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    padding: 0.75rem;
+    background: var(--gray-50);
+    border: 1px solid var(--gray-200);
+    border-radius: 8px;
+    color: var(--gray-700);
+    font-weight: 500;
+    transition: var(--transition);
+}
+
+.social-btn:hover {
+    background: var(--gray-100);
+    transform: translateY(-1px);
+}
+
+/* Animation keyframes */
+@keyframes formSlide {
+    0% {
+        opacity: 0;
+        transform: translateX(30px) scale(0.95);
+    }
+    100% {
+        opacity: 1;
+        transform: translateX(0) scale(1);
+    }
+}
+
+@keyframes formSlideOut {
+    0% {
+        opacity: 1;
+        transform: translateX(0) scale(1);
+    }
+    100% {
+        opacity: 0;
+        transform: translateX(-30px) scale(0.95);
+    }
+}
+
+/* Tab Indicator Animation */
+@keyframes tabBounce {
+    0%, 100% {
+        transform: translateY(-2px);
+    }
+    50% {
+        transform: translateY(-4px);
+    }
+}
+
+/* Responsive Design */
+@media (max-width: 480px) {
+    .auth-container {
+        width: 100%;
+        border-radius: 0;
+        box-shadow: none;
+    }
+    
+    .tabs {
+        padding: 1rem;
+    }
+    
+    .form-container {
+        padding: 1.5rem;
+    }
+}

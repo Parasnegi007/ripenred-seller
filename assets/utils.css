@@ -1,0 +1,38 @@
+.hidden {
+    display: none !important;
+}
+
+.loading {
+    position: relative;
+}
+
+.loading::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(255,255,255,0.8) url('loading.gif') center no-repeat;
+    z-index: 1000;
+}
+
+/* Toast Customization */
+.toast-container {
+    z-index: 9999;
+}
+
+.toast {
+    opacity: 0;
+    transition: opacity 0.3s ease-in-out;
+}
+
+.toast.show {
+    opacity: 1;
+}
+
+/* Security Styles */
+img {
+    max-width: 100%;
+    height: auto;
+}
