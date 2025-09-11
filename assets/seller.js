@@ -10,7 +10,9 @@ const sessionState = {
     tempSellerLogin: null,
     loginOtpVerified: false,
     retryCount: 0,
-    lastAttempt: null
+    lastAttempt: null,
+    resetEmail: null,
+    forgotOtpVerified: false
 };
 
 // Enhanced Notification System
@@ -54,7 +56,7 @@ function handleApiError(error, defaultMessage) {
 }
 
 // Send OTP for Signup
-async function sendSellerOTP() {
+async function sendSellerOTP(event) {
   const email = document.getElementById("signupEmail").value.trim();
 
   if (!email) {
@@ -134,7 +136,7 @@ async function verifySellerOTP() {
 
     if (res.ok) {
       showMessage("OTP Verified! You can now complete signup.", 'success');
-      otpVerified = true;
+      sessionState.otpVerified = true;
       // Enable signup button if it exists
       const signupBtn = document.querySelector('[onclick="submitSellerSignup()"]');
       if (signupBtn) {
@@ -151,7 +153,7 @@ async function verifySellerOTP() {
 
 // Submit Signup
 async function submitSellerSignup() {
-  if (!otpVerified) {
+  if (!sessionState.otpVerified) {
     showMessage("Please verify OTP before signing up", 'error');
     return;
   }
@@ -222,7 +224,7 @@ async function submitSellerSignup() {
       if (confirmPassword) document.getElementById("signupConfirmPassword").value = '';
       
       // Reset OTP verification status
-      otpVerified = false;
+      sessionState.otpVerified = false;
       document.getElementById("otpVerifySection").classList.add("hidden");
       
       // Switch to login tab
@@ -273,7 +275,7 @@ async function handleSellerLogin() {
 
     if (res.ok) {
       // Store login data temporarily until OTP verification
-      tempSellerLogin = data;
+      sessionState.tempSellerLogin = data;
       document.getElementById("loginOtpSection").classList.remove("hidden");
       showMessage("Credentials verified. Please check your email for OTP.", 'success');
       
@@ -290,7 +292,7 @@ async function handleSellerLogin() {
 }
 
 // Send OTP for Login
-async function sendLoginOTP() {
+async function sendLoginOTP(event) {
   const emailOrPhone = document.getElementById("loginEmailOrPhone").value.trim();
   if (!emailOrPhone) {
     showMessage("Please enter email/phone first.", 'error');
@@ -349,7 +351,7 @@ async function verifyLoginOTP() {
     return;
   }
 
-  if (!tempSellerLogin) {
+  if (!sessionState.tempSellerLogin) {
     showMessage("Please login first before verifying OTP", 'error');
     return;
   }
@@ -371,19 +373,18 @@ async function verifyLoginOTP() {
       
       // Store authentication token
       localStorage.setItem("sellerAuthToken", data.token);    // use token from OTP verification response
-localStorage.setItem("sellerInfo", JSON.stringify(data.seller));
 
       // Store seller info for dashboard use
       localStorage.setItem("sellerInfo", JSON.stringify({
-        id: tempSellerLogin.seller.id,
-        name: tempSellerLogin.seller.name,
-        email: tempSellerLogin.seller.email,
-        vendorName: tempSellerLogin.seller.vendorName
+        id: sessionState.tempSellerLogin.seller.id,
+        name: sessionState.tempSellerLogin.seller.name,
+        email: sessionState.tempSellerLogin.seller.email,
+        vendorName: sessionState.tempSellerLogin.seller.vendorName
       }));
       
       // Clear temporary data
-      tempSellerLogin = null;
-      loginOtpVerified = false;
+      sessionState.tempSellerLogin = null;
+      sessionState.loginOtpVerified = false;
       
       // Clear form
       document.getElementById("loginEmailOrPhone").value = '';
@@ -405,11 +406,8 @@ localStorage.setItem("sellerInfo", JSON.stringify(data.seller));
 // ✅ Forgot Password Flow
 // ==============================
 
-let resetEmail = null;
-let forgotOtpVerified = false;
-
 // Step 1: Send OTP to email
-async function sendForgotOtp() {
+async function sendForgotOtp(event) {
   const email = document.getElementById("forgotEmail").value.trim();
   if (!email) return alert("Enter your registered email");
 
@@ -428,7 +426,7 @@ async function sendForgotOtp() {
     alert(data.message);
 
     if (res.ok) {
-      resetEmail = email;
+      sessionState.resetEmail = email;
       document.getElementById("forgotOtpSection").classList.remove("hidden");
     }
   } catch (err) {
@@ -444,18 +442,18 @@ async function sendForgotOtp() {
 // Step 2: Verify OTP
 async function verifyForgotOtp() {
   const otp = document.getElementById("forgotOtp").value.trim();
-  if (!resetEmail || !otp) return alert("Email and OTP required");
+  if (!sessionState.resetEmail || !otp) return alert("Email and OTP required");
 
   try {
     const res = await fetch(`${getAPIURL()}/sellers/verify-otp`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email: resetEmail, otp })
+      body: JSON.stringify({ email: sessionState.resetEmail, otp })
     });
 
     const data = await res.json();
     if (res.ok) {
-      forgotOtpVerified = true;
+      sessionState.forgotOtpVerified = true;
       document.getElementById("resetPasswordSection").classList.remove("hidden");
       alert("OTP verified! You can now reset your password.");
     } else {
@@ -469,7 +467,7 @@ async function verifyForgotOtp() {
 // Step 3: Reset password
 async function resetForgotPassword() {
   const newPassword = document.getElementById("forgotNewPassword").value.trim();
-  if (!resetEmail || !forgotOtpVerified || !newPassword) {
+  if (!sessionState.resetEmail || !sessionState.forgotOtpVerified || !newPassword) {
     return alert("Please verify OTP and enter new password");
   }
 
@@ -477,7 +475,7 @@ async function resetForgotPassword() {
     const res = await fetch(`${getAPIURL()}/sellers/forgot-password/reset`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email: resetEmail, newPassword })
+      body: JSON.stringify({ email: sessionState.resetEmail, newPassword })
     });
 
     const data = await res.json();

@@ -199,6 +199,7 @@
 
 <!-- Application Scripts -->
 <script src="config.new.js"></script>
+<script src="assets/seller.js"></script>
 <script>
   // Initialize toastr configuration
   toastr.options = {
@@ -212,7 +213,11 @@
   // Global error handling
   window.addEventListener('error', (event) => {
     console.error('Global error:', event.error);
-    showMessage('An unexpected error occurred. Please try again.', 'error');
+    if (typeof showMessage === 'function') {
+      showMessage('An unexpected error occurred. Please try again.', 'error');
+    } else {
+      alert('An unexpected error occurred. Please try again.');
+    }
   });
 
   // Session management
@@ -223,7 +228,11 @@
     if (Date.now() - lastActivity > SESSION_TIMEOUT) {
       localStorage.removeItem('sellerAuthToken');
       localStorage.removeItem('sellerInfo');
-      showMessage('Session expired. Please login again.', 'warning');
+      if (typeof showMessage === 'function') {
+        showMessage('Session expired. Please login again.', 'warning');
+      } else {
+        alert('Session expired. Please login again.');
+      }
       location.reload();
     }
   }
@@ -235,6 +244,5 @@
   // Check session every minute
   setInterval(checkSession, 60000);
 </script>
-<script src="assets/seller.js"></script>
 </body>
 </html>
