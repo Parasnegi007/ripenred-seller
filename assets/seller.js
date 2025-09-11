@@ -299,12 +299,12 @@ async function sendLoginOTP(event) {
     return;
   }
 
-  const button = event.target;
-  const originalText = button ? button.textContent : "Send OTP";
+  const loginButton = event ? event.target : null;
+  const originalText = loginButton ? loginButton.textContent : "Send OTP";
   
-  if (button) {
-    button.disabled = true;
-    button.textContent = "Sending...";
+  if (loginButton) {
+    loginButton.disabled = true;
+    loginButton.textContent = "Sending...";
   }
 
   try {
@@ -327,10 +327,10 @@ async function sendLoginOTP(event) {
   } catch (err) {
     handleApiError(err, "Network error occurred while sending OTP.");
   } finally {
-    if (button) {
+    if (loginButton) {
       setTimeout(() => {
-        button.disabled = false;
-        button.textContent = originalText;
+        loginButton.disabled = false;
+        loginButton.textContent = originalText;
       }, 10000);
     }
   }
@@ -411,9 +411,9 @@ async function sendForgotOtp(event) {
   const email = document.getElementById("forgotEmail").value.trim();
   if (!email) return alert("Enter your registered email");
 
-  const button = event.target;
-  button.disabled = true;
-  button.textContent = "Sending...";
+  const forgotButton = event.target;
+  forgotButton.disabled = true;
+  forgotButton.textContent = "Sending...";
 
   try {
     const res = await fetch(`${getAPIURL()}/sellers/forgot-password`, {
@@ -434,8 +434,8 @@ async function sendForgotOtp(event) {
   }
 
   setTimeout(() => {
-    button.disabled = false;
-    button.textContent = "Send OTP";
+    forgotButton.disabled = false;
+    forgotButton.textContent = "Send OTP";
   }, 10000);
 }
 

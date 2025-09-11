@@ -201,6 +201,13 @@
 <script src="config.new.js"></script>
 <script src="assets/seller.js"></script>
 <script>
+  // Debug: Check if seller.js loaded
+  console.log('seller.js loaded, functions available:', {
+    handleSellerLogin: typeof handleSellerLogin,
+    showMessage: typeof showMessage,
+    getAPIURL: typeof getAPIURL
+  });
+  
   // Initialize toastr configuration
   toastr.options = {
     closeButton: true,
