@@ -6,17 +6,34 @@
 // Single source of truth (shared name with storefront for consistency)
 window.API_CONFIG = window.API_CONFIG || null;
 
-// Load configuration from backend (relative to current origin)
+// Load configuration from backend
 async function loadAPIConfig() {
   try {
-    const response = await fetch('/api/config/api-config');
+    // Determine the correct API domain based on current environment
+    let apiDomain;
+    const currentDomain = window.location.hostname;
+    
+    if (currentDomain.includes('localhost') || currentDomain.includes('127.0.0.1')) {
+      // Local development - use same origin
+      apiDomain = window.location.origin.replace(/\/$/, '');
+    } else if (currentDomain.startsWith('seller.')) {
+      // Production seller subdomain - point to main domain
+      apiDomain = window.location.protocol + '//' + currentDomain.replace('seller.', '');
+    } else {
+      // Default to current origin
+      apiDomain = window.location.origin.replace(/\/$/, '');
+    }
+    
+    console.log('🔍 [Seller] Trying to load config from:', `${apiDomain}/api/config/api-config`);
+    
+    const response = await fetch(`${apiDomain}/api/config/api-config`);
     if (!response.ok) {
       throw new Error(`HTTP ${response.status}`);
     }
     const config = await response.json();
 
     // Normalize and store
-    const baseUrl = (config.API_BASE_URL || config.apiBaseUrl || '').replace(/\/$/, '');
+    const baseUrl = (config.API_BASE_URL || config.apiBaseUrl || apiDomain).replace(/\/$/, '');
     window.API_CONFIG = {
       BASE_URL: baseUrl,
       API_URL: baseUrl + '/api'
@@ -26,13 +43,28 @@ async function loadAPIConfig() {
     return window.API_CONFIG;
   } catch (error) {
     console.error('❌ [Seller] Failed to load API configuration:', error);
-    // Fallback to current domain if config loading fails (works for local dev)
-    const fallbackURL = window.location.origin.replace(/\/$/, '');
+    
+    // Smart fallback based on environment
+    let fallbackURL;
+    const currentDomain = window.location.hostname;
+    
+    if (currentDomain.includes('localhost') || currentDomain.includes('127.0.0.1')) {
+      // Local development
+      fallbackURL = window.location.origin.replace(/\/$/, '');
+    } else if (currentDomain.startsWith('seller.')) {
+      // Production - point to main domain
+      fallbackURL = window.location.protocol + '//' + currentDomain.replace('seller.', '');
+    } else {
+      // Default fallback
+      fallbackURL = window.location.origin.replace(/\/$/, '');
+    }
+    
     window.API_CONFIG = {
       BASE_URL: fallbackURL,
       API_URL: fallbackURL + '/api'
     };
-    console.warn('⚠️ [Seller] Using fallback API configuration:', window.API_CONFIG);
+    
+    console.warn('⚠️ [Seller] Using smart fallback API configuration:', window.API_CONFIG);
     return window.API_CONFIG;
   }
 }
@@ -40,17 +72,41 @@ async function loadAPIConfig() {
 // Helper function to get API URL (used by other scripts)
 function getAPIURL() {
   if (!window.API_CONFIG) {
-    // Return fallback immediately, config will update later
-    return window.location.origin.replace(/\/$/, '') + '/api';
+    // Smart immediate fallback based on domain
+    const currentDomain = window.location.hostname;
+    let fallbackURL;
+    
+    if (currentDomain.includes('localhost') || currentDomain.includes('127.0.0.1')) {
+      fallbackURL = window.location.origin.replace(/\/$/, '');
+    } else if (currentDomain.startsWith('seller.')) {
+      fallbackURL = window.location.protocol + '//' + currentDomain.replace('seller.', '');
+    } else {
+      fallbackURL = window.location.origin.replace(/\/$/, '');
+    }
+    
+    console.log('🔍 [Seller] getAPIURL() immediate fallback:', fallbackURL + '/api');
+    return fallbackURL + '/api';
   }
+  
   // Prefer explicit API_URL if present, else derive from BASE_URL
-  return window.API_CONFIG.API_URL || (window.API_CONFIG.BASE_URL + '/api');
+  const apiUrl = window.API_CONFIG.API_URL || (window.API_CONFIG.BASE_URL + '/api');
+  console.log('🔍 [Seller] getAPIURL() from config:', apiUrl);
+  return apiUrl;
 }
 
 // Helper function to get base URL
 function getBaseURL() {
   if (!window.API_CONFIG) {
-    return window.location.origin.replace(/\/$/, '');
+    // Smart immediate fallback based on domain
+    const currentDomain = window.location.hostname;
+    
+    if (currentDomain.includes('localhost') || currentDomain.includes('127.0.0.1')) {
+      return window.location.origin.replace(/\/$/, '');
+    } else if (currentDomain.startsWith('seller.')) {
+      return window.location.protocol + '//' + currentDomain.replace('seller.', '');
+    } else {
+      return window.location.origin.replace(/\/$/, '');
+    }
   }
   return window.API_CONFIG.BASE_URL;
 }
