@@ -1,9 +1,10 @@
 // Application Configuration
-let appConfig = {
+if (typeof window.appConfig === 'undefined') {
+  window.appConfig = {
     API_BASE_URL: null, // Will be loaded dynamically
     TOKEN_EXPIRY: 24 * 60 * 60 * 1000, // 24 hours
     CACHE_TTL: 5 * 60 * 1000, // 5 minutes
-    IMAGE_MAX_SIZE: 5 * 1024 * 1024, // 5MB
+    IMAGE_MAX_SIZE: 10* 1024 * 1024, // 10MB
     ALLOWED_IMAGE_TYPES: ['image/jpeg', 'image/jpg', 'image/png', 'image/webp']
 };
 
@@ -12,8 +13,8 @@ let configLoaded = false;
 
 // Helper function to get API URL with fallback
 window.getAPIURL = function() {
-    if (appConfig.API_BASE_URL) {
-        return appConfig.API_BASE_URL;
+    if (window.appConfig.API_BASE_URL) {
+        return window.appConfig.API_BASE_URL;
     }
     // Fallback URL if config hasn't loaded yet
     return 'https://ripenred.com/api';
@@ -33,7 +34,7 @@ async function loadConfig() {
         
         if (response.ok) {
             const config = await response.json();
-            appConfig.API_BASE_URL = config.apiBaseUrl;
+            window.appConfig.API_BASE_URL = config.API_BASE_URL || config.apiBaseUrl;
             configLoaded = true;
             console.log('Configuration loaded successfully:', config);
         } else {
@@ -48,4 +49,5 @@ async function loadConfig() {
 loadConfig();
 
 // Make config available globally
-window.config = appConfig;
+window.config = window.appConfig;
+}
