@@ -16,7 +16,7 @@ window.getAPIURL = function() {
         return appConfig.API_BASE_URL;
     }
     // Fallback URL if config hasn't loaded yet
-    return 'http://localhost:5000/api';
+    return 'https://ripenred.com/api';
 };
 
 // Helper function to get base URL
@@ -28,8 +28,8 @@ window.getBaseURL = function() {
 // Load configuration from backend
 async function loadConfig() {
     try {
-        const baseURL = 'http://localhost:5000'; // Initial base URL for config endpoint
-        const response = await fetch(`${baseURL}/config/api-config`);
+        const baseURL = 'https://ripenred.com'; // Production base URL for config endpoint
+        const response = await fetch(`${baseURL}/api/config/api-config`);
         
         if (response.ok) {
             const config = await response.json();
