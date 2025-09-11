@@ -138,7 +138,13 @@ class NotificationManager {
       // Register service worker (basic one for push notifications)
       let swRegistration;
       try {
-        swRegistration = await navigator.serviceWorker.register('/seller-dashboard/sw.js');
+        // Determine correct service worker path based on environment
+        const swPath = window.location.hostname.startsWith('seller.') 
+          ? '/sw.js'  // For seller subdomain, sw.js is at root
+          : '/seller-dashboard/sw.js';  // For other paths
+        
+        swRegistration = await navigator.serviceWorker.register(swPath);
+        console.log('✅ Service worker path used:', swPath);
         console.log('✅ Service worker registered successfully');
         
         // Wait for service worker to be ready

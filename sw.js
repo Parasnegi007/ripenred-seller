@@ -13,21 +13,23 @@ self.addEventListener('push', function(event) {
       notificationData = {
         title: 'New Notification',
         body: event.data.text() || 'You have a new notification',
-        icon: '/seller-dashboard/favicon.ico'
+        icon: self.location.hostname.startsWith('seller.') ? '/favicon.ico' : '/seller-dashboard/favicon.ico'
       };
     }
   } else {
     notificationData = {
       title: 'New Order Alert',
       body: 'You have received a new order!',
-      icon: '/seller-dashboard/favicon.ico'
+      icon: self.location.hostname.startsWith('seller.') ? '/favicon.ico' : '/seller-dashboard/favicon.ico'
     };
   }
 
+  const iconPath = self.location.hostname.startsWith('seller.') ? '/favicon.ico' : '/seller-dashboard/favicon.ico';
+  
   const options = {
     body: notificationData.body || notificationData.message,
-    icon: notificationData.icon || '/seller-dashboard/favicon.ico',
-    badge: '/seller-dashboard/favicon.ico',
+    icon: notificationData.icon || iconPath,
+    badge: iconPath,
     vibrate: [200, 100, 200],
     data: notificationData.data || {},
     actions: [
@@ -53,9 +55,13 @@ self.addEventListener('notificationclick', function(event) {
   event.notification.close();
 
   if (event.action === 'view' || !event.action) {
-    // Open the seller dashboard
+    // Open the seller dashboard - use correct path based on current location
+    const dashboardUrl = self.location.hostname.startsWith('seller.') 
+      ? '/index.html'  // For seller subdomain
+      : '/seller-dashboard/index.html';  // For other domains
+    
     event.waitUntil(
-      clients.openWindow('/seller-dashboard/index.html')
+      clients.openWindow(dashboardUrl)
     );
   }
 });
